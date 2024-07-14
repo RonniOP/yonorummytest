@@ -1,0 +1,20 @@
+.download-box {
+    width: 100%;
+    padding: 18px;
+    background-color: #444;
+    color: white;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    position: relative;
+}
+
+.download-box:hover {
+    background-color: #555;
+}
+
+@media (max-width: 600px) {
+    .download-box {
+        font-size: 10.2em; /* Adjust font size for smaller screens */
+    }
+}

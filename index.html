@@ -1,0 +1,229 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe - Player vs AI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #ff7e5f, #feb47b);
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(3, 150px);
+            grid-template-rows: repeat(3, 150px);
+            gap: 10px;
+        }
+        .cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 150px;
+            height: 150px;
+            font-size: 4em;
+            color: #FFFFFF;
+            background-color: #888888;
+            border: 3px solid #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .cell:hover {
+            background-color: ;
+        }
+        .X {
+            background-color: maroon;
+        }
+        .O {
+            background-color: teal;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 1.5em;
+            color: #333;
+        }
+        #timer {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 1.5em;
+            color: white;
+            background-color: #444;
+            border-radius: 5px;
+            border: 2px solid #fff;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        button {
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: 1.5em;
+            cursor: pointer;
+            background-color: #fff;
+            border: 2px solid #333;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #eaeaea;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="board"></div>
+    <div id="result"></div>
+    <div id="timer">Time left: 10</div>
+    <button id="newGame" disabled>New Game</button>
+
+    <script>
+        const board = document.getElementById('board');
+        const resultDisplay = document.getElementById('result');
+        const timerDisplay = document.getElementById('timer');
+        const newGameButton = document.getElementById('newGame');
+        let currentPlayer = 'X'; // Player is X
+        let aiPlayer = 'O'; // AI is O
+        let gameState = ['', '', '', '', '', '', '', '', ''];
+        let gameActive = true;
+        let timer;
+        let timeLeft = 10;
+
+        function createBoard() {
+            board.innerHTML = '';
+            gameState = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 'X';
+            gameActive = true;
+            resultDisplay.textContent = '';
+            newGameButton.disabled = true;
+            timerDisplay.textContent = 'Time left: 10';
+            timeLeft = 10;
+
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.addEventListener('click', () => handleCellClick(cell, i));
+                board.appendChild(cell);
+            }
+            startTimer();
+        }
+
+        function handleCellClick(cell, index) {
+            if (gameState[index] !== '' || !gameActive) return;
+
+            clearInterval(timer); // Stop the timer on move
+            gameState[index] = currentPlayer;
+            cell.textContent = currentPlayer;
+            cell.classList.add(currentPlayer);
+            checkWinner();
+
+            if (gameActive) {
+                currentPlayer = aiPlayer; // Switch to AI
+                setTimeout(aiMove, 500); // AI makes a move after a short delay
+            }
+        }
+
+        function aiMove() {
+            if (!gameActive) return;
+
+            // AI logic
+            for (let i = 0; i < 9; i++) {
+                if (gameState[i] === '') {
+                    gameState[i] = currentPlayer;
+                    if (checkWin(currentPlayer)) {
+                        const cell = board.children[i];
+                        cell.textContent = aiPlayer;
+                        cell.classList.add(aiPlayer);
+                        checkWinner();
+                        return;
+                    }
+                    gameState[i] = ''; // Reset
+                }
+            }
+
+            const availableCells = gameState.map((value, index) => value === '' ? index : null).filter(value => value !== null);
+            if (availableCells.length > 0) {
+                const randomIndex = availableCells[Math.floor(Math.random() * availableCells.length)];
+                gameState[randomIndex] = aiPlayer;
+                const cell = board.children[randomIndex];
+                cell.textContent = aiPlayer;
+                cell.classList.add(aiPlayer);
+                checkWinner();
+                currentPlayer = 'X';
+                startTimer(); // Restart timer for player's turn
+            }
+        }
+
+        function startTimer() {
+            timeLeft = 10;
+            timerDisplay.textContent = 'Time left: 10';
+            timer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = `Time left: ${timeLeft}`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    resultDisplay.textContent = `TIME'S UP! PLAYER ${currentPlayer} LOSES.`;
+                    gameActive = false;
+                    newGameButton.disabled = false;
+                }
+            }, 1000);
+        }
+
+        function checkWin(player) {
+            const winningCombinations = [
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
+                [0, 4, 8],
+                [2, 4, 6]
+            ];
+
+            return winningCombinations.some(combination => {
+                const [a, b, c] = combination;
+                return gameState[a] === player && gameState[b] === player && gameState[c] === player;
+            });
+        }
+
+        function checkWinner() {
+            if (checkWin('X')) {
+                setTimeout(() => {
+                    resultDisplay.textContent = `PLAYER X WINS!`;
+                    gameActive = false;
+                    newGameButton.disabled = false;
+                }, 10);
+                return;
+            }
+            if (checkWin('O')) {
+                setTimeout(() => {
+                    resultDisplay.textContent = `PLAYER O WINS!`;
+                    gameActive = false;
+                    newGameButton.disabled = false;
+                }, 10);
+                return;
+            }
+
+            if (!gameState.includes('')) {
+                setTimeout(() => {
+                    resultDisplay.textContent = "IT'S A TIE!";
+                    gameActive = false;
+                    newGameButton.disabled = false;
+                }, 10);
+            }
+        }
+
+        newGameButton.addEventListener('click', createBoard);
+        createBoard();
+    </script>
+
+</body>
+</html>
